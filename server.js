@@ -1,11 +1,9 @@
 const express = require('express');
 const path = require('path');
-//const api = require('./routes/index');
 const fs = require('fs');
-const util = require('util');
-const { readFromFile, readAndAppend } = require('./helpers/fsUtils');
+//const api = require('./routes/index');
+const { readFromFile, writeToFile, readAndAppend } = require('./helpers/fsUtils');
 const { v4: uuidv4 } = require('uuid');
-const res = require('express/lib/response');
 
 const PORT = process.env.PORT || 3001;
 
@@ -16,6 +14,8 @@ app.use(express.urlencoded({ extended: true }));
 //api.use('/api', api);
 
 app.use(express.static('public'));
+
+let data = require('./db/db.json');
 
 app.get('/notes', (req, res) =>
     res.sendFile(path.join(__dirname, '/public/notes.html'))
@@ -35,17 +35,30 @@ app.post('/api/notes', (req, res) => {
     if (req.body) {
         const newNote = {
 
+            id: uuidv4(),
             title,
-            text,
-            noteId: uuidv4(),
-        
+            text
+
         };
 
         readAndAppend(newNote, './db/db.json');
-        res.json(`Note added successfully`);
-    } else {
-        res.error('Error in adding note');
-    }
+        res.json(`Tip added successfully 🚀`);
+        } else {
+        res.error('Error in adding tip');
+        }
+});
+
+app.delete('/api/notes/:id', (req, res) => {
+    console.info(`${req.method} request received to delete a note`);
+    const found = data.some(obj => obj.id === req.params.id);
+    if (found) {
+        data = data.filter(obj => obj.id !== req.params.id);
+
+        writeToFile('./db/db.json', data);
+        res.json(`Note deleted successfully 🚀`);
+        } else {
+        res.error('Error in adding tip');
+        }
 });
 
 // Wildcard route to direct users to a index.html page
