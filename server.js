@@ -56,8 +56,6 @@ app.delete('/api/notes/:id', (req, res) => {
 
         writeToFile('./db/db.json', data);
         res.json(`Note deleted successfully 🚀`);
-        } else {
-        res.error('Error in adding tip');
         }
 });
 
