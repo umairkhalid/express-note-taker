@@ -1,15 +1,22 @@
+// Creating a router for getting and posting notes
 const notesRouter = require('express').Router();
+
+// Importing helper and library modules
 const { readFromFile, writeToFile, readAndAppend } = require('../helpers/fsUtils');
 const { v4: uuidv4 } = require('uuid');
 
-let data = require('../db/db.json');
+// Assigning a path to db.json file
+let db = 'db/db.json';
 
-// GET Route for retrieving all the tips
+// GET Route for retrieving all the notes in db.json
 notesRouter.get('/', (req, res) => {
     console.info(`${req.method} request received for notes`);
-    readFromFile('./db/db.json').then((data) => res.json(JSON.parse(data)));
+    readFromFile(db)
+        .then((data) => 
+            res.json(JSON.parse(data)));
 });
 
+// POST Route for adding notes
 notesRouter.post('/', (req, res) => {
     console.info(`${req.method} request received to add a note`);
     
@@ -24,22 +31,26 @@ notesRouter.post('/', (req, res) => {
 
         };
 
-        readAndAppend(newNote, './db/db.json');
-        res.json(`Tip added successfully 🚀`);
+        readAndAppend(newNote, db);
+        res.json(`Note added successfully 🚀`);
         } else {
-        res.error('Error in adding tip');
+        res.error('Error in adding note');
         }
 });
 
+//DELETE route for a specific note ID
 notesRouter.delete('/:id', (req, res) => {
     console.info(`${req.method} request received to delete a note`);
-    const found = data.some(obj => obj.id === req.params.id);
-    if (found) {
-        data = data.filter(obj => obj.id !== req.params.id);
+    const noteId = req.params.id;
+	readFromFile(db)
+    	.then((data) => JSON.parse(data))
+            .then((json) => {
+                const obj = json.filter((note) => note.id !== noteId);
 
-        writeToFile('./db/db.json', data);
-        res.json(`Note deleted successfully 🚀`);
-        }
+                writeToFile('db/db.json', obj);
+
+                res.json(`${noteId} has been deleted successfully!`);
+            });
 });
 
 module.exports = notesRouter;
